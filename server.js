@@ -18,7 +18,7 @@ function getUsers(room){ return rooms[room] ? Object.values(rooms[room].users) :
 io.on('connection', (socket) => {
   let currentRoom=null, currentUser=null;
 
-  socket.on('join_room', ({ room, username, password, isPrivate }) => {
+  socket.on('join_room', ({ room, username, password, isPrivate, avatar }) => {
     // If room exists and is private, check password
     if(rooms[room] && rooms[room].isPrivate){
       if(rooms[room].password !== password){
@@ -29,17 +29,17 @@ io.on('connection', (socket) => {
     currentRoom=room; currentUser=username;
     socket.join(room);
     if(!rooms[room]) rooms[room]={ users:{}, password: password||null, isPrivate: isPrivate||false };
-    rooms[room].users[socket.id]={ username, id:socket.id };
+    rooms[room].users[socket.id]={ username, id:socket.id, avatar: avatar||null };
     io.to(room).emit('room_users', getUsers(room));
     socket.to(room).emit('user_joined', { username, time:Date.now() });
     socket.emit('joined', { room, users:getUsers(room) });
   });
 
-  socket.on('send_message', ({ message, room, type, imageData, imageName, replyTo }) => {
+  socket.on('send_message', ({ message, room, type, imageData, imageName, replyTo, avatar }) => {
     if(!room||!currentUser) return;
     const msgId = Math.random().toString(36).substr(2,9)+Date.now();
     seenBy[msgId] = new Set([socket.id]);
-    io.to(room).emit('receive_message', { id:msgId, username:currentUser, message, type:type||'text', imageData:imageData||null, imageName:imageName||null, time:Date.now(), socketId:socket.id, replyTo:replyTo||null });
+    io.to(room).emit('receive_message', { id:msgId, username:currentUser, message, type:type||'text', imageData:imageData||null, imageName:imageName||null, time:Date.now(), socketId:socket.id, replyTo:replyTo||null, avatar:avatar||null });
   });
 
   socket.on('mark_seen', ({ room, msgId }) => {
