@@ -158,6 +158,33 @@ input[type=text]::placeholder{color:var(--muted)}
   .chat-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
 }
 
+/* DARK / LIGHT MODE */
+body.light{--bg:#f0f0fa;--surface:#e4e4f0;--card:#ffffff;--border:#d0d0e8;--text:#1a1a2e;--muted:#8888aa;--bubble-them:#e8e8f8;background:var(--bg)}
+body.light .chat-header,body.light .input-area{background:rgba(240,240,250,.9)}
+body.light #messages{background:transparent}
+body.light .nebula1{background:radial-gradient(ellipse,rgba(124,109,250,0.12) 0%,transparent 70%)}
+
+/* THEME TOGGLE BTN */
+#theme-toggle{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.85rem;padding:5px 10px;cursor:pointer;transition:all .2s;flex-shrink:0}
+#theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+/* SCROLL TO BOTTOM */
+#scroll-btn{position:absolute;bottom:100px;right:24px;z-index:20;background:var(--card);border:1px solid var(--border);border-radius:50%;width:40px;height:40px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:transform .15s,box-shadow .15s;color:var(--text)}
+#scroll-btn.visible{display:flex;animation:fadeIn .2s ease}
+#scroll-btn:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(124,109,250,.3);border-color:var(--accent);color:var(--accent)}
+#scroll-btn svg{width:18px;height:18px}
+#unread-badge{position:absolute;top:-6px;right:-6px;background:var(--accent2);color:#fff;border-radius:20px;font-size:.6rem;padding:2px 5px;font-family:'Syne',sans-serif;font-weight:700;display:none}
+#unread-badge.visible{display:block}
+
+/* CONFETTI */
+.confetti-piece{position:fixed;top:-10px;width:8px;height:8px;border-radius:2px;pointer-events:none;z-index:9998;animation:confettiFall linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* SOUND TOGGLE */
+#sound-toggle{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.82rem;padding:5px 10px;cursor:pointer;transition:all .2s}
+#sound-toggle:hover{border-color:var(--accent);color:var(--accent)}
+#sound-toggle.muted{opacity:.5}
+
 /* LIGHTBOX */
 #lightbox{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;cursor:zoom-out}
 #lightbox.open{display:flex;animation:fadeIn .2s ease}
@@ -215,6 +242,8 @@ input[type=text]::placeholder{color:var(--muted)}
     </div>
     <div class="header-right">
       <div class="online-count"><div class="online-dot"></div><span id="online-count">1 online</span></div>
+      <button id="sound-toggle" onclick="toggleSound()" title="Toggle sounds">🔔</button>
+      <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
       <button class="leave-btn" onclick="leaveRoom()">leave</button>
     </div>
   </div>
@@ -222,6 +251,10 @@ input[type=text]::placeholder{color:var(--muted)}
   <div class="chat-body">
     <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;position:relative">
       <div id="messages"></div>
+      <button id="scroll-btn" onclick="scrollToBottom()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <span id="unread-badge"></span>
+      </button>
       <div id="typing-area"></div>
       <div class="input-area">
         <div id="img-preview-strip"></div>
@@ -261,6 +294,131 @@ const QUICK_REACTIONS = ['👍','❤️','😂','😮','😢','🔥'];
 const EMOJIS = ['😊','😂','🔥','❤️','👍','😭','🤔','😎','🥳','💀','✨','🙌','😍','🤣','😅','👀','💯','🎉','🚀','⚡','🌙','🌊','🍕','🎵','😴','🤯','👾','🫡','💜','🫶'];
 const COLORS = ['#7c6dfa','#fa6d9a','#6dfacc','#fad96d','#fa976d','#6daaff','#d96dfa'];
 
+// ── THEME ──
+let isDark = true;
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  document.getElementById('theme-toggle').textContent=isDark?'🌙':'☀️';
+}
+
+// ── SOUND ──
+let soundOn = true;
+const AudioCtx = window.AudioContext||window.webkitAudioContext;
+let audioCtx = null;
+function getAudioCtx(){ if(!audioCtx) audioCtx=new AudioCtx(); return audioCtx; }
+
+function playSound(type){
+  if(!soundOn) return;
+  try{
+    const ctx=getAudioCtx();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if(type==='send'){
+      osc.frequency.setValueAtTime(600,ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(900,ctx.currentTime+0.08);
+      gain.gain.setValueAtTime(0.15,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+      osc.start(); osc.stop(ctx.currentTime+0.15);
+    } else if(type==='receive'){
+      osc.frequency.setValueAtTime(440,ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660,ctx.currentTime+0.1);
+      gain.gain.setValueAtTime(0.12,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.2);
+      osc.start(); osc.stop(ctx.currentTime+0.2);
+    } else if(type==='join'){
+      // cheerful 3-note ding
+      [523,659,784].forEach((f,i)=>{
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value=f;
+        g.gain.setValueAtTime(0,ctx.currentTime+i*0.1);
+        g.gain.linearRampToValueAtTime(0.1,ctx.currentTime+i*0.1+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.1+0.2);
+        o.start(ctx.currentTime+i*0.1); o.stop(ctx.currentTime+i*0.1+0.2);
+      });
+    }
+  } catch(e){}
+}
+
+function toggleSound(){
+  soundOn=!soundOn;
+  const btn=document.getElementById('sound-toggle');
+  btn.textContent=soundOn?'🔔':'🔕';
+  btn.classList.toggle('muted',!soundOn);
+}
+
+// ── CONFETTI ──
+function launchConfetti(){
+  const colors=['#7c6dfa','#fa6d9a','#6dfacc','#fad96d','#fa976d','#6daaff','#ffffff'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-piece';
+      el.style.cssText=`
+        left:${Math.random()*100}vw;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        width:${6+Math.random()*8}px;
+        height:${6+Math.random()*8}px;
+        border-radius:${Math.random()<.5?'50%':'2px'};
+        animation-duration:${1.5+Math.random()*2}s;
+        animation-delay:${Math.random()*0.5}s;
+      `;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 4000);
+    }, i*30);
+  }
+}
+
+// ── SCROLL TO BOTTOM ──
+let unreadCount=0;
+let isAtBottom=true;
+const msgsEl=document.getElementById('messages');
+msgsEl.addEventListener('scroll',()=>{
+  const threshold=80;
+  isAtBottom=msgsEl.scrollHeight-msgsEl.scrollTop-msgsEl.clientHeight<threshold;
+  const btn=document.getElementById('scroll-btn');
+  if(isAtBottom){
+    btn.classList.remove('visible');
+    unreadCount=0;
+    document.getElementById('unread-badge').classList.remove('visible');
+  } else {
+    btn.classList.add('visible');
+  }
+});
+function scrollToBottom(){
+  msgsEl.scrollTo({top:msgsEl.scrollHeight,behavior:'smooth'});
+  unreadCount=0;
+  document.getElementById('unread-badge').classList.remove('visible');
+}
+function smartScroll(){
+  if(isAtBottom){
+    msgsEl.scrollTop=msgsEl.scrollHeight;
+  } else {
+    unreadCount++;
+    const badge=document.getElementById('unread-badge');
+    badge.textContent=unreadCount>9?'9+':unreadCount;
+    badge.classList.add('visible');
+    document.getElementById('scroll-btn').classList.add('visible');
+  }
+}
+
+// ── TIME AGO ──
+function timeAgo(ts){
+  const diff=Math.floor((Date.now()-ts)/1000);
+  if(diff<10) return 'just now';
+  if(diff<60) return `${diff}s ago`;
+  if(diff<3600) return `${Math.floor(diff/60)}m ago`;
+  return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+// Update all time-ago labels every 30s
+setInterval(()=>{
+  document.querySelectorAll('.bubble-time[data-ts]').forEach(el=>{
+    el.textContent=timeAgo(+el.dataset.ts);
+  });
+},30000);
+
 // Inject shake keyframe
 const ks = document.createElement('style');
 ks.textContent = `@keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}100%{transform:translateX(0)}}`;
@@ -293,6 +451,8 @@ socket.on('joined',({room})=>{
   document.getElementById('lobby').classList.add('hidden');
   document.getElementById('chat-app').classList.add('visible');
   addSysMsg('you joined #'+room);
+  launchConfetti();
+  playSound('join');
   const panel=document.getElementById('emoji-panel');
   panel.innerHTML=EMOJIS.map(e=>`<button onclick="insertEmoji('${e}')">${e}</button>`).join('');
 });
@@ -308,6 +468,7 @@ socket.on('room_users',(users)=>{
 
 socket.on('receive_message',(data)=>{
   const isMe = data.socketId===socket.id;
+  if(!isMe) playSound('receive');
   if(data.type==='image') addImageMessage(data.id,data.username,data.imageData,data.imageName,data.time,isMe);
   else addMessage(data.id,data.username,data.message,data.time,isMe);
 });
@@ -352,26 +513,25 @@ function makeReactTrigger(msgId){
 function addMessage(id,username,message,time,isMe){
   const msgs=document.getElementById('messages');
   const color=getColor(username);
-  const t=new Date(time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const div=document.createElement('div');
   div.className='msg-row'+(isMe?' me':'');
   div.dataset.msgId=id;
+  const timeEl=`<div class="bubble-time" data-ts="${time}">${timeAgo(time)}</div>`;
   div.innerHTML=`
     <div class="avatar" style="background:${color}22;color:${color};border:1px solid ${color}44">${getInitial(username)}</div>
     <div class="bubble-wrap">
       ${!isMe?`<div class="bubble-name">${escapeHtml(username)}</div>`:''}
       <div class="bubble">${escapeHtml(message)}</div>
-      <div class="bubble-time">${t}</div>
+      ${timeEl}
     </div>`;
   div.insertBefore(makeReactTrigger(id),div.firstChild);
   msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
+  smartScroll();
 }
 
 function addImageMessage(id,username,imageData,imageName,time,isMe){
   const msgs=document.getElementById('messages');
   const color=getColor(username);
-  const t=new Date(time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const div=document.createElement('div');
   div.className='msg-row'+(isMe?' me':'');
   div.dataset.msgId=id;
@@ -385,7 +545,7 @@ function addImageMessage(id,username,imageData,imageName,time,isMe){
   const bwrap=document.createElement('div'); bwrap.className='bubble-wrap';
   if(!isMe){const bn=document.createElement('div');bn.className='bubble-name';bn.textContent=username;bwrap.appendChild(bn)}
   bwrap.appendChild(imgBubble);
-  const bt=document.createElement('div'); bt.className='bubble-time'; bt.textContent=t;
+  const bt=document.createElement('div'); bt.className='bubble-time'; bt.dataset.ts=time; bt.textContent=timeAgo(time);
   bwrap.appendChild(bt);
   const av=document.createElement('div');
   av.className='avatar'; av.style.cssText=`background:${color}22;color:${color};border:1px solid ${color}44`;
@@ -393,7 +553,7 @@ function addImageMessage(id,username,imageData,imageName,time,isMe){
   div.appendChild(makeReactTrigger(id));
   div.appendChild(av); div.appendChild(bwrap);
   msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
+  smartScroll();
 }
 
 function addSysMsg(text){
@@ -420,6 +580,7 @@ function sendAll(){
   const msg=input.value.trim();
   if(msg){
     socket.emit('send_message',{message:msg,room:myRoom,type:'text'});
+    playSound('send');
     input.value=''; input.style.height='auto';
     emitStopTyping();
   }
