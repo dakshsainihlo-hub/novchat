@@ -18,28 +18,25 @@ function getUsers(room){ return rooms[room] ? Object.values(rooms[room].users) :
 io.on('connection', (socket) => {
   let currentRoom=null, currentUser=null;
 
-  socket.on('join_room', ({ room, username, password, isPrivate, avatar }) => {
-    // If room exists and is private, check password
+  socket.on('join_room', ({ room, username, avatar, password, isPrivate }) => {
     if(rooms[room] && rooms[room].isPrivate){
-      if(rooms[room].password !== password){
-        socket.emit('wrong_password');
-        return;
-      }
+      if(rooms[room].password !== password){ socket.emit('wrong_password'); return; }
     }
     currentRoom=room; currentUser=username;
     socket.join(room);
-    if(!rooms[room]) rooms[room]={ users:{}, password: password||null, isPrivate: isPrivate||false };
-    rooms[room].users[socket.id]={ username, id:socket.id, avatar: avatar||null };
+    if(!rooms[room]) rooms[room]={ users:{}, password:password||null, isPrivate:isPrivate||false };
+    rooms[room].users[socket.id]={ username, id:socket.id, avatar:avatar||'😊' };
     io.to(room).emit('room_users', getUsers(room));
     socket.to(room).emit('user_joined', { username, time:Date.now() });
     socket.emit('joined', { room, users:getUsers(room) });
   });
 
-  socket.on('send_message', ({ message, room, type, imageData, imageName, replyTo, avatar }) => {
+  socket.on('send_message', ({ message, room, type, imageData, imageName, replyTo }) => {
     if(!room||!currentUser) return;
     const msgId = Math.random().toString(36).substr(2,9)+Date.now();
     seenBy[msgId] = new Set([socket.id]);
-    io.to(room).emit('receive_message', { id:msgId, username:currentUser, message, type:type||'text', imageData:imageData||null, imageName:imageName||null, time:Date.now(), socketId:socket.id, replyTo:replyTo||null, avatar:avatar||null });
+    const avatar = rooms[room]?.users[socket.id]?.avatar || '😊';
+    io.to(room).emit('receive_message', { id:msgId, username:currentUser, message, type:type||'text', imageData:imageData||null, imageName:imageName||null, time:Date.now(), socketId:socket.id, replyTo:replyTo||null, avatar });
   });
 
   socket.on('mark_seen', ({ room, msgId }) => {
