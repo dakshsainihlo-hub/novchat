@@ -97,29 +97,11 @@ input::placeholder{color:var(--muted)}
 .dropdown-sep{height:1px;background:var(--border);margin:4px 0}
 
 .header-right{display:flex;align-items:center;gap:8px}
-/* ONLINE USERS POPUP */
-.online-count{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:20px;border:1px solid transparent;transition:all .2s;user-select:none;position:relative}
-.online-count:hover{border-color:var(--border);color:var(--text)}
-.online-dot{width:6px;height:6px;border-radius:50%;background:#6dfacc;flex-shrink:0}
-#online-popup{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 8px;z-index:200;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.45);display:none;animation:dropIn .2s cubic-bezier(.34,1.56,.64,1)}
-#online-popup.open{display:block}
-.popup-title{font-size:.62rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:2px 10px 8px;border-bottom:1px solid var(--border);margin-bottom:6px}
-.popup-user{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:.78rem;color:var(--text);transition:background .15s}
-.popup-user:hover{background:var(--surface)}
-.popup-user-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
-.popup-user-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.popup-you{font-size:.6rem;color:var(--muted);margin-left:4px}
-
-/* AVATAR PICKER */
-.avatar-pick-label{font-size:.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:block}
-.avatar-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.av-option{width:44px;height:44px;border-radius:50%;border:2px solid var(--border);background:var(--surface);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.av-option:hover{border-color:var(--accent);transform:scale(1.1)}
-.av-option.selected{border-color:var(--accent);background:rgba(124,109,250,.15);box-shadow:0 0 0 3px rgba(124,109,250,.2);transform:scale(1.08)}
-
-/* Avatar in chat — emoji style */
-.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:600;flex-shrink:0;cursor:pointer;transition:transform .15s;border:2px solid transparent}
-.avatar:hover{transform:scale(1.12)}
+.online-count{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted)}
+.online-dot{width:6px;height:6px;border-radius:50%;background:#6dfacc}
+.hdr-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.82rem;padding:5px 9px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hdr-btn.muted-btn{opacity:.5}
 
 /* MESSAGES */
 #messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:4px;position:relative;z-index:1;scroll-behavior:smooth}
@@ -245,8 +227,6 @@ input::placeholder{color:var(--muted)}
 #unread-badge.visible{display:block}
 
 /* SOUND TOGGLE */
-.hdr-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.82rem;padding:5px 9px;cursor:pointer;transition:all .2s;flex-shrink:0}
-.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
 .hdr-btn.muted-btn{opacity:.45}
 
 /* Sidebar */
@@ -328,9 +308,6 @@ input::placeholder{color:var(--muted)}
     <div class="logo">NovChat</div>
     <div class="logo-sub">// real-time rooms · no login needed</div>
 
-    <span class="avatar-pick-label">choose your avatar</span>
-    <div class="avatar-grid" id="avatar-grid"></div>
-
     <label>your name</label>
     <input type="text" id="username-input" placeholder="e.g. cosmic_wave" maxlength="20" autocomplete="off"/>
 
@@ -347,7 +324,6 @@ input::placeholder{color:var(--muted)}
 
     <div class="room-presets" id="room-presets"></div>
 
-    <p style="font-size:.72rem;color:var(--muted);margin-bottom:10px;line-height:1.5">💡 If you want this room to be a private room, only people with the password can join.</p>
     <div class="private-row">
       <label class="toggle-switch">
         <input type="checkbox" id="private-toggle" onchange="togglePrivate(this)"/>
@@ -382,14 +358,7 @@ input::placeholder{color:var(--muted)}
       </div>
     </div>
     <div class="header-right">
-      <div class="online-count" id="online-count-btn" onclick="toggleOnlinePopup()">
-        <div class="online-dot"></div>
-        <span id="online-count">1 online</span>
-        <div id="online-popup">
-          <div class="popup-title">online now</div>
-          <div id="online-popup-list"></div>
-        </div>
-      </div>
+      <div class="online-count"><div class="online-dot"></div><span id="online-count">1 online</span></div>
       <button class="hdr-btn" id="sound-toggle" onclick="toggleSound()" title="Sound">🔔</button>
       <button class="hdr-btn" id="theme-toggle" onclick="toggleTheme()" title="Theme">🌙</button>
     </div>
@@ -449,22 +418,7 @@ const QUICK_REACTIONS=['👍','❤️','😂','😮','😢','🔥'];
 const EMOJIS=['😊','😂','🔥','❤️','👍','😭','🤔','😎','🥳','💀','✨','🙌','😍','🤣','😅','👀','💯','🎉','🚀','⚡','🌙','🌊','🍕','🎵','😴','🤯','👾','🫡','💜','🫶'];
 const COLORS=['#7c6dfa','#fa6d9a','#6dfacc','#fad96d','#fa976d','#6daaff','#d96dfa'];
 
-const AVATARS = ['🐼','🦊','🐸','🤖','👾','🦁','🐙','🐺','🦋','🐯','👻','🎃'];
-let myAvatar = AVATARS[0];
-
-// ── AVATAR PICKER ──
-function initAvatarGrid(){
-  const grid = document.getElementById('avatar-grid');
-  grid.innerHTML = AVATARS.map((a,i)=>`
-    <button class="av-option${i===0?' selected':''}" onclick="selectAvatar(this,'${a}')">${a}</button>
-  `).join('');
-}
-function selectAvatar(btn, avatar){
-  document.querySelectorAll('.av-option').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  myAvatar = avatar;
-}
-initAvatarGrid();
+const ROOM_PRESETS={
   general:['lounge','random','vent','chill'],
   gaming:['fps-zone','minecraft','valorant','retro'],
   music:['lo-fi','hip-hop','rock','producers'],
@@ -515,7 +469,7 @@ function joinRoom(){
   if(!r)return shake('room-input');
   if(isPrivate&&!pw)return shake('room-password');
   myUsername=u; myRoom=r;
-  socket.emit('join_room',{room:r,username:u,avatar:myAvatar,password:isPrivate?pw:null,isPrivate});
+  socket.emit('join_room',{room:r,username:u,password:isPrivate?pw:null,isPrivate});
 }
 
 // ── PASSWORD MODAL (for joining existing private rooms) ──
@@ -534,14 +488,7 @@ function submitPwModal(){
   closePwModal();
 }
 
-// ── ONLINE POPUP ──
-function toggleOnlinePopup(e){
-  if(e) e.stopPropagation();
-  document.getElementById('online-popup').classList.toggle('open');
-}
-document.addEventListener('click',(e)=>{
-  if(!e.target.closest('#online-count-btn')) document.getElementById('online-popup').classList.remove('open');
-});
+// ── THEME ──
 let isDark=true;
 function toggleTheme(){
   isDark=!isDark;
@@ -696,20 +643,12 @@ socket.on('wrong_password',()=>{
 });
 
 socket.on('room_users',(users)=>{
-  document.getElementById('online-count').innerHTML=`<div class="online-dot"></div> ${users.length} online`;
-  // sidebar
+  document.getElementById('online-count').textContent=users.length+' online';
   document.getElementById('users-list').innerHTML=users.map(u=>`
     <div class="user-item">
-      <div class="user-avatar-sm" style="font-size:1rem;background:${getColor(u.username)}22;border:1px solid ${getColor(u.username)}44;cursor:pointer"
-        onclick="showCtxMenu(event,'${u.username}')">${u.avatar||getInitial(u.username)}</div>
+      <div class="user-avatar-sm" style="background:${getColor(u.username)}22;color:${getColor(u.username)};border:1px solid ${getColor(u.username)}44"
+        onclick="showCtxMenu(event,'${u.username}')">${getInitial(u.username)}</div>
       <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.username}${u.id===socket.id?' <span style="color:var(--muted);font-size:.58rem">(you)</span>':''}</span>
-    </div>`).join('');
-  // online popup
-  document.getElementById('online-popup-list').innerHTML=users.map(u=>`
-    <div class="popup-user">
-      <div class="popup-user-av">${u.avatar||getInitial(u.username)}</div>
-      <span class="popup-user-name">${u.username}</span>
-      ${u.id===socket.id?'<span class="popup-you">(you)</span>':''}
     </div>`).join('');
 });
 
@@ -717,8 +656,9 @@ socket.on('receive_message',(data)=>{
   const isMe=data.socketId===socket.id;
   if(!isMe) playSound('receive');
   if(blockedUsers.has(data.username))return;
-  if(data.type==='image') addImageMessage(data.id,data.username,data.imageData,data.imageName,data.time,isMe,data.replyTo,data.avatar);
-  else addMessage(data.id,data.username,data.message,data.time,isMe,data.replyTo,data.avatar);
+  if(data.type==='image') addImageMessage(data.id,data.username,data.imageData,data.imageName,data.time,isMe,data.replyTo);
+  else addMessage(data.id,data.username,data.message,data.time,isMe,data.replyTo);
+  // mark seen
   if(!isMe) socket.emit('mark_seen',{room:myRoom,msgId:data.id});
 });
 
@@ -786,7 +726,7 @@ function makeActions(msgId,username,messageText,isMe){
   return div;
 }
 
-function addMessage(id,username,message,time,isMe,replyData,avatar){
+function addMessage(id,username,message,time,isMe,replyData){
   if(blockedUsers.has(username))return;
   const msgs=document.getElementById('messages');
   const color=getColor(username);
@@ -794,11 +734,11 @@ function addMessage(id,username,message,time,isMe,replyData,avatar){
   div.className='msg-row'+(isMe?' me':'');
   div.dataset.msgId=id;
   div.dataset.user=username;
+  // avatar
   const av=document.createElement('div');
   av.className='avatar';
-  av.style.cssText=`background:${color}22;border:2px solid ${color}44`;
-  av.textContent=avatar||getInitial(username);
-  av.title=username;
+  av.style.cssText=`background:${color}22;color:${color};border:1px solid ${color}44`;
+  av.textContent=getInitial(username);
   av.addEventListener('contextmenu',e=>showCtxMenu(e,username));
   av.addEventListener('click',e=>{if(!isMe)showCtxMenu(e,username)});
   // bubble wrap
@@ -821,7 +761,7 @@ function addMessage(id,username,message,time,isMe,replyData,avatar){
   smartScroll();
 }
 
-function addImageMessage(id,username,imageData,imageName,time,isMe,replyData,avatar){
+function addImageMessage(id,username,imageData,imageName,time,isMe,replyData){
   if(blockedUsers.has(username))return;
   const msgs=document.getElementById('messages');
   const color=getColor(username);
@@ -829,9 +769,8 @@ function addImageMessage(id,username,imageData,imageName,time,isMe,replyData,ava
   div.className='msg-row'+(isMe?' me':'');
   div.dataset.msgId=id; div.dataset.user=username;
   const av=document.createElement('div');av.className='avatar';
-  av.style.cssText=`background:${color}22;border:2px solid ${color}44`;
-  av.textContent=avatar||getInitial(username);
-  av.title=username;
+  av.style.cssText=`background:${color}22;color:${color};border:1px solid ${color}44`;
+  av.textContent=getInitial(username);
   av.addEventListener('contextmenu',e=>showCtxMenu(e,username));
   av.addEventListener('click',e=>{if(!isMe)showCtxMenu(e,username)});
   const bwrap=document.createElement('div');bwrap.className='bubble-wrap';
