@@ -534,23 +534,13 @@ function handleDpUpload(inp){
   const reader=new FileReader();
   reader.onload=e=>{
     myDp=e.target.result;myAvatar=null;
-    document.querySelectorAll('.av-option').forEach(b=>b.classList.remove('selected'));
     document.getElementById('dp-circle').innerHTML=`<img src="${myDp}" alt="dp"/>`;
   };
   reader.readAsDataURL(file);
 }
 
-// ── AVATAR PICKER ──
-function initAvatarGrid(){
-  document.getElementById('avatar-grid').innerHTML=AVATARS.map((a,i)=>`<button class="av-option${i===0?' selected':''}" onclick="selectAvatar(this,'${a}')">${a}</button>`).join('');
-}
-function selectAvatar(btn,avatar){
-  document.querySelectorAll('.av-option').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');myAvatar=avatar;myDp=null;
-  document.getElementById('dp-circle').innerHTML='<span class="dp-icon">📷</span>';
-  document.getElementById('dp-input').value='';
-}
-initAvatarGrid();
+// ── AVATAR PICKER (removed from UI) ──
+function selectAvatar(btn,avatar){}
 
 // ── ROOM PRESETS ──
 const ROOM_PRESETS={general:['lounge','random','vent','chill'],gaming:['fps-zone','minecraft','valorant','retro'],music:['lo-fi','hip-hop','rock','producers'],study:['math-help','coding','exam-prep','library']};
